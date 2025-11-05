@@ -13,16 +13,17 @@
 #include "hal/hal.h"
 #include "apis/grove/grove.hpp"
 
-#define LOOP_HZ (400)
+#define LOOP_DELAY_MS (50)
 
 void setup()
 {
     // Init
     HAL::hal::GetHal()->init();
+    grove_init();
 }
 
 void loop()
 {
-    delay(1000 / LOOP_HZ);
+    delay(LOOP_DELAY_MS);
     grove_serial_loop();
 }

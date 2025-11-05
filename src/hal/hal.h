@@ -53,6 +53,7 @@ namespace HAL
             Config_t config;
             bool is_wifi_config_vaild = false;
             bool is_sd_card_valid = false;
+            bool is_camera_valid = false;
         };
         Data_t _data;
         
@@ -86,11 +87,14 @@ namespace HAL
         Config_t getDefaultConfig();
         void printConfig();
         
-        // For poster mode usage 
+        // For poster mode usage
         bool sdCardInit(bool passImagePath = false);
         void sdCardDeinit();
         inline bool isSdCardValid() { return _data.is_sd_card_valid; }
         bool saveImage(uint8_t* img, size_t size);
+
+        // Camera status
+        inline bool isCameraValid() { return _data.is_camera_valid; }
 
 
     private:

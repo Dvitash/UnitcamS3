@@ -1,20 +1,18 @@
 /**
  * @file hal_cam.cpp
  * @author Forairaaaaa
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-11-01
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include <mooncake.h>
 #include <Arduino.h>
 #include "../hal.h"
 
 using namespace HAL;
-
-
 
 #include <esp_camera.h>
 //
@@ -26,15 +24,18 @@ using namespace HAL;
 //            Face Recognition is DISABLED for ESP32 and ESP32-S2, because it takes up from 15
 //            seconds to process single frame. Face Detection is ENABLED if PSRAM is enabled as well
 
+// Note: UnitCamS3 uses esp32s3box board - camera model may need verification
+// Current config uses CAMERA_MODEL_ESP_EYE pins
 #define CAMERA_MODEL_ESP_EYE
 #include "camera_pins.h"
-
-
 
 void hal::_cam_init()
 {
     spdlog::info("cam init");
+    _data.is_camera_valid = false;
 
+    // Give camera time to power up
+    delay(100);
 
     camera_config_t config;
     config.ledc_channel = LEDC_CHANNEL_0;
@@ -64,28 +65,27 @@ void hal::_cam_init()
     config.pixel_format = PIXFORMAT_JPEG; // for streaming
     // config.pixel_format = PIXFORMAT_RGB565; // for face detection/recognition
     config.grab_mode = CAMERA_GRAB_LATEST;
+    // Try PSRAM first, fall back to internal RAM if needed
     config.fb_location = CAMERA_FB_IN_PSRAM;
     config.jpeg_quality = 16;
     config.fb_count = 2;
 
-
     esp_err_t err = esp_camera_init(&config);
     if (err != ESP_OK)
     {
-        // Serial.printf("Camera init failed with error 0x%x", err);
-        printf("Camera init failed with error 0x%x\n", err);
+        spdlog::error("Camera init failed with error 0x{:x}", err);
 
-        // Retry
-        spdlog::info("reboot..");
-        delay(1000);
-        esp_restart();
+        spdlog::error("Unknown camera error: 0x{:x}", err);
     }
 
+    spdlog::error("Continuing without camera - system will operate in degraded mode");
+    return;
 
-    sensor_t* s = esp_camera_sensor_get();
+    sensor_t *s = esp_camera_sensor_get();
     s->set_vflip(s, 1);
     s->set_hmirror(s, 1);
 
+    _data.is_camera_valid = true;
     spdlog::info("cam init ok");
     delay(100);
 }

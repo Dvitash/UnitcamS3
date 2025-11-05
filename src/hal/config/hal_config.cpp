@@ -89,14 +89,11 @@ hal::Config_t hal::getDefaultConfig()
 
 void hal::_config_init()
 {
-    // File system 
-    if (!LittleFS.begin(true)) 
+    // File system
+    if (!LittleFS.begin(true))
     {
-        while (1)
-        {
-            spdlog::info("file system init failed");
-            delay(1000);
-        }
+        spdlog::error("file system init failed, continuing without filesystem");
+        return;
     }
 
     spdlog::info("config init");

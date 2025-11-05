@@ -6,4 +6,5 @@ extern HardwareSerial GroveSerial;
 #define TX_PIN (20)
 
 void grove_init();
+void capture_and_send_image();
 void grove_serial_loop();
