@@ -18,19 +18,18 @@ void HAL_UnitCamS3_5MP::_camera_init()
 {
     spdlog::info("camera init");
 
-    // Check PSRAM availability - ESP32-S3-WROOM-1-N16R8 should have 8MB PSRAM
-    if (psramFound())
+    const bool psram_available = psramFound();
+    if (psram_available)
     {
         spdlog::info("PSRAM available: {} bytes - camera will use PSRAM for frame buffers", ESP.getPsramSize());
     }
     else
     {
-        spdlog::error("PSRAM not found - ESP32-S3-WROOM-1-N16R8 should have PSRAM!");
-        _camera_ready = false;
-        return;
+        spdlog::warn("PSRAM not detected, falling back to DRAM (reduced frame size)");
+        spdlog::warn("If you expect PSRAM, double-check board variant and efuses");
     }
 
-    camera_config_t config;
+    camera_config_t config = {};
     config.ledc_channel = LEDC_CHANNEL_0;
     config.ledc_timer = LEDC_TIMER_0;
     config.pin_d0 = CAMERA_PIN_D0;
@@ -51,10 +50,10 @@ void HAL_UnitCamS3_5MP::_camera_init()
     config.pin_reset = CAMERA_PIN_RESET;
     config.xclk_freq_hz = XCLK_FREQ_HZ;
     config.pixel_format = PIXFORMAT_JPEG;
-    config.frame_size = FRAMESIZE_VGA; // Full VGA resolution with PSRAM available
+    config.frame_size = psram_available ? FRAMESIZE_VGA : FRAMESIZE_QVGA;
     config.jpeg_quality = 12;
-    config.fb_count = 1;
-    config.fb_location = CAMERA_FB_IN_PSRAM; // Use PSRAM for better performance
+    config.fb_count = psram_available ? 2 : 1;
+    config.fb_location = psram_available ? CAMERA_FB_IN_PSRAM : CAMERA_FB_IN_DRAM;
     config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
 
     spdlog::info("camera config - SDA:{}, SCL:{}, RESET:{}, PWDN:{}, XCLK:{}",
