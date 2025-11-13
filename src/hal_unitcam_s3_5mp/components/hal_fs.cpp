@@ -23,9 +23,11 @@ void HAL_UnitCamS3_5MP::_fs_init()
 
     if (!LittleFS.begin(true))
     {
-        popFatalError("littlefs init failed");
+        spdlog::error("LittleFS init failed - continuing without filesystem");
+        return; // Continue instead of fatal error
     }
 
+    spdlog::info("LittleFS init successful");
     loadSystemConfig();
     _log_out_system_config();
 }

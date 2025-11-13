@@ -20,6 +20,10 @@
 #include "apis/apis.h"
 #include <assets/assets.h>
 
+const int LEDC_CHANNEL = 0;
+const int LEDC_FREQ = 12000;
+const int LEDC_RESOLUTION = 8;
+
 void HAL_UnitCamS3_5MP::startPosterServer()
 {
     spdlog::info("start poster server");
@@ -76,20 +80,21 @@ void HAL_UnitCamS3_5MP::startPosterServer()
     {
         gpio_reset_pin(GPIO_NUM_14);
         pinMode(14, OUTPUT);
-        ledcAttach(14, 12000, 8);
+        ledcSetup(LEDC_CHANNEL, LEDC_FREQ, LEDC_RESOLUTION);
+        ledcAttachPin(14, LEDC_CHANNEL);
         uint32_t time_count = millis();
         bool is_connected = false;
         while (1)
         {
             for (int i = 0; i < 255; i++)
             {
-                ledcWrite(14, i);
+                ledcWrite(LEDC_CHANNEL, i);
                 delay(5);
             }
 
             for (int i = 255; i > 0; i--)
             {
-                ledcWrite(14, i);
+                ledcWrite(LEDC_CHANNEL, i);
                 delay(5);
 
                 // Connected
@@ -120,7 +125,7 @@ void HAL_UnitCamS3_5MP::startPosterServer()
             if (is_connected)
                 break;
         }
-        ledcDetach(14);
+        ledcDetachPin(14);
 
         gpio_reset_pin((gpio_num_t)HAL_PIN_LED);
         gpio_set_direction((gpio_num_t)HAL_PIN_LED, GPIO_MODE_OUTPUT);

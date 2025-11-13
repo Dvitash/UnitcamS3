@@ -17,12 +17,10 @@
 #include <LittleFS.h>
 #include "utils/ezdata_image_poster.hpp"
 #include "utils/status_led/status_led.h"
-#include "apps/utils/system/inputs/inputs.h"
 #include <esp_wifi.h>
+#include <M5Unified.h>
 
-using namespace SYSTEM::INPUTS;
-
-static void _task_image_poster(void* param)
+static void _task_image_poster(void *param)
 {
     uint32_t post_time_count = 0;
     int post_count_down = HAL::GetSystemConfig().postInterval;
@@ -63,11 +61,11 @@ static void _task_image_poster(void* param)
                 // Start posting
                 spdlog::info("start posting..");
                 if (!ezdata_image_poster(
-                        mac, HAL::GetSystemConfig().nickname, HAL::GetSystemConfig().timeZone, [](camera_fb_t* frameBuffer) {
+                        mac, HAL::GetSystemConfig().nickname, HAL::GetSystemConfig().timeZone, [](camera_fb_t *frameBuffer)
+                        {
                             // Save on every captured
                             if (HAL::IsSdCardVaild())
-                                HAL::SaveImage(frameBuffer->buf, frameBuffer->len);
-                        }))
+                                HAL::SaveImage(frameBuffer->buf, frameBuffer->len); }))
                 {
                     // If failed
                     spdlog::error("post failed, try reboot..");
@@ -97,8 +95,8 @@ static void _task_image_poster(void* param)
         }
 
         // If button 0 pressed
-        Button::Update();
-        if (Button::A()->wasClicked())
+        M5.update();
+        if (M5.BtnA.wasClicked())
         {
             spdlog::info("g0 pressed, reset");
 
@@ -118,7 +116,7 @@ static void _task_image_poster(void* param)
     vTaskDelete(NULL);
 }
 
-static void _task_start_poster(void* param)
+static void _task_start_poster(void *param)
 {
     delay(500);
     spdlog::info("start poster");
@@ -132,13 +130,13 @@ static void _task_start_poster(void* param)
     vTaskDelete(NULL);
 }
 
-void startPoster(AsyncWebServerRequest* request)
+void startPoster(AsyncWebServerRequest *request)
 {
     xTaskCreate(_task_start_poster, "reboot", 4000, NULL, 15, NULL);
     request->send(200, "application/json", "{\"msg\":\"ok\"}");
 }
 
-void load_poster_apis(AsyncWebServer& server) { server.on("/api/v1/start_poster", HTTP_GET, startPoster); }
+void load_poster_apis(AsyncWebServer &server) { server.on("/api/v1/start_poster", HTTP_GET, startPoster); }
 
 void start_poster_task()
 {

@@ -20,7 +20,7 @@
 #include "apis/apis.h"
 #include <assets/assets.h>
 
-static AsyncWebServer* _server = nullptr;
+static AsyncWebServer *_server = nullptr;
 
 void HAL_UnitCamS3_5MP::startApServer()
 {
@@ -36,12 +36,18 @@ void HAL_UnitCamS3_5MP::startApServer()
     spdlog::info("ap ip: {}", WiFi.softAPIP().toString().c_str());
 
     // Load page
-    _server->on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
+    _server->on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+                {
+        // Check if asset pool exists
+        if (AssetPool::GetStaticAsset() == nullptr) {
+            request->send(503, "text/plain", "Asset pool not loaded. Please build AssetPool.bin from upstream repo.");
+            return;
+        }
+
         AsyncWebServerResponse* response =
             request->beginResponse_P(200, "text/html", AssetPool::GetImage().index_html_gz, 234419);
         response->addHeader("Content-Encoding", "gzip");
-        request->send(response);
-    });
+        request->send(response); });
 
     // Load apis
     load_cam_apis(*_server);

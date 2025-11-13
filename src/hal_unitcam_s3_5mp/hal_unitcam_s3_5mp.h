@@ -21,6 +21,8 @@ private:
     void _log_out_system_config();
     void _mic_init();
 
+    bool _camera_ready = false; // Add this flag
+
 public:
     std::string type() override { return "UnitCamS3-5MP"; }
 
@@ -28,11 +30,13 @@ public:
     {
         _gamepad_init();
         _watch_dog_init();
-        _camera_init();
+        // _camera_init();  // Remove this line - camera init is now non-fatal
 
         initArduino();
         _fs_init();
         _mic_init();
+
+        _camera_init(); // Add this here after other inits
 
         // while (1)
         // {
@@ -56,8 +60,10 @@ public:
     void stopApServer() override;
     void startPosterServer() override;
 
+    bool isCameraReady() { return _camera_ready; }
+
     bool sdCardInit(bool passImagePath) override;
     bool sdCardDeInit() override;
     bool isSdCardVaild() override;
-    bool saveImage(uint8_t* img, size_t size) override;
+    bool saveImage(uint8_t *img, size_t size) override;
 };

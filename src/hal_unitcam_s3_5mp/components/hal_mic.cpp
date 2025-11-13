@@ -38,9 +38,10 @@ void HAL_UnitCamS3_5MP::_mic_init()
     _mic->begin();
     if (!_mic->begin())
     {
-        popFatalError("mic init failed");
+        spdlog::error("mic init failed - continuing without microphone");
+        return; // Continue instead of fatal error
     }
-    spdlog::info("ok");
+    spdlog::info("mic init successful");
 
     /* -------------------------------------------------------------------------- */
     /*                                    Test                                    */
